@@ -6,32 +6,30 @@ import (
 	"strings"
 )
 
-type IpInfo struct {
-	IP          string
+type IPInfo struct {
+	IP          net.IP
 	CountryCode string
 	ASN         string
 	City        string
 }
 
-func (c *Client) GetIpInfo(r *http.Request) IpInfo {
-	var info IpInfo
+func (c *Client) IPInfoFromRequest(r *http.Request) IPInfo {
+	ip := net.ParseIP(clientIP(r))
 
-	// 1) determine client IP
-	ip := clientIP(r)
-	if ip == "" {
+	return c.IPInfo(ip)
+}
+
+func (c *Client) IPInfo(ip net.IP) IPInfo {
+	var info IPInfo
+
+	if ip == nil {
 		return info
 	}
+
 	info.IP = ip
 
-	// 2) parse it
-	parsedIP := net.ParseIP(ip)
-	if parsedIP == nil {
-		return info
-	}
-
-	// 3) lookup City
 	if cityDB := c.CityDB(); cityDB != nil {
-		if rec, err := cityDB.City(parsedIP); err == nil {
+		if rec, err := cityDB.City(ip); err == nil {
 			// is country code
 			info.CountryCode = rec.Country.IsoCode
 
@@ -42,9 +40,8 @@ func (c *Client) GetIpInfo(r *http.Request) IpInfo {
 		}
 	}
 
-	// 4) lookup ASN
 	if asnDB := c.AsnDB(); asnDB != nil {
-		if rec, err := asnDB.ASN(parsedIP); err == nil {
+		if rec, err := asnDB.ASN(ip); err == nil {
 			info.ASN = rec.AutonomousSystemOrganization
 		}
 	}
