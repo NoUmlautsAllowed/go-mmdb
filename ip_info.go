@@ -7,10 +7,10 @@ import (
 )
 
 type IPInfo struct {
-	IP          net.IP
-	CountryCode string
-	ASN         string
-	City        string
+	IP          net.IP `json:"ip"`
+	CountryCode string `json:"country_code"`
+	ASN         string `json:"asn"`
+	City        string `json:"city"`
 }
 
 func (c *Client) IPInfoFromRequest(r *http.Request) IPInfo {

@@ -2,6 +2,7 @@ package mmdb
 
 import (
 	"log"
+	"os"
 	"path"
 	"sync"
 	"time"
@@ -10,12 +11,18 @@ import (
 )
 
 const (
-	CityDatabase    = "GeoLite2-City.mmdb"
-	CountryDatabase = "GeoLite2-Country.mmdb"
-	ASNDatabase     = "GeoLite2-ASN.mmdb"
+	CityDatabase    = "GeoLite2-City"
+	CountryDatabase = "GeoLite2-Country"
+	ASNDatabase     = "GeoLite2-ASN"
 	// DefaultReloadInterval is how often we check for a new DB file.
 	DefaultReloadInterval = 2 * time.Hour
+
+	dbSuffix = ".mmdb"
 )
+
+func dbPath(dataDir, name string) string {
+	return path.Join(dataDir, name+dbSuffix)
+}
 
 type Client struct {
 	DataDirectory string
@@ -34,9 +41,10 @@ type Client struct {
 }
 
 // NewClient creates a Client and opens all three GeoIP2 databases.
-// If dataDirectory is empty, it defaults to the working directory
+// If MAXMIND_BASE_PATH is empty, it defaults to the working directory.
 // On any error it closes any readers it already opened.
-func NewClient(dataDirectory string) (*Client, error) {
+func NewClient() (*Client, error) {
+	dataDirectory := os.Getenv(MaxmindBasePath)
 	if dataDirectory == "" {
 		dataDirectory = "."
 	}
@@ -48,18 +56,18 @@ func NewClient(dataDirectory string) (*Client, error) {
 		asn     *geoip2.Reader
 	)
 
-	country, err = geoip2.Open(path.Join(dataDirectory, CountryDatabase))
+	country, err = geoip2.Open(dbPath(dataDirectory, CountryDatabase))
 	if err != nil {
 		return nil, err
 	}
 
-	city, err = geoip2.Open(path.Join(dataDirectory, CityDatabase))
+	city, err = geoip2.Open(dbPath(dataDirectory, CityDatabase))
 	if err != nil {
 		_ = country.Close()
 		return nil, err
 	}
 
-	asn, err = geoip2.Open(path.Join(dataDirectory, ASNDatabase))
+	asn, err = geoip2.Open(dbPath(dataDirectory, ASNDatabase))
 	if err != nil {
 		_ = country.Close()
 		_ = city.Close()
@@ -109,7 +117,7 @@ func (c *Client) reloadAll() {
 
 // reloadDB opens the filename, swaps it in under mu, closes the old reader.
 func (c *Client) reloadDB(mu *sync.RWMutex, ptr **geoip2.Reader, filename string) {
-	newPath := path.Join(c.DataDirectory, filename)
+	newPath := dbPath(c.DataDirectory, filename)
 	newDB, err := geoip2.Open(newPath)
 	if err != nil {
 		log.Printf("Failed to open %s: %v", filename, err)

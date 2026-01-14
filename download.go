@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -34,9 +33,12 @@ func NewDownloader() (*Downloader, error) {
 	account := os.Getenv(MaxmindAccountId)
 	license := os.Getenv(MaxmindLicenseKey)
 	base := os.Getenv(MaxmindBasePath)
-	if account == "" || license == "" || base == "" {
-		return nil, fmt.Errorf("mmdb: missing one of %s, %s or %s",
-			MaxmindAccountId, MaxmindLicenseKey, MaxmindBasePath)
+	if base == "" {
+		base = "."
+	}
+	if account == "" || license == "" {
+		return nil, fmt.Errorf("mmdb: missing %s or %s",
+			MaxmindAccountId, MaxmindLicenseKey)
 	}
 
 	return &Downloader{
@@ -75,7 +77,7 @@ func (d *Downloader) downloadOne(ctx context.Context, db string) error {
 		return fmt.Errorf("fetch remote time: %w", err)
 	}
 
-	localFile := filepath.Join(d.BasePath, db+".mmdb")
+	localFile := dbPath(d.BasePath, db)
 	if !needsDownload(localFile, remoteTime) {
 		info, _ := os.Stat(localFile)
 		log.Printf("mmdb [%s] up to date (%s)", db, info.ModTime().UTC())
