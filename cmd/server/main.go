@@ -7,10 +7,16 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"gitlab.w1lhelm.de/swilhelm/go-mmdb"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("godotenv:", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
