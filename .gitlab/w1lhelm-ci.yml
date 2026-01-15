@@ -1,0 +1,66 @@
+stages:
+  - build
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+
+.build-go:
+  image: golang:alpine
+  tags:
+    - docker
+  before_script:
+    - export GOCACHE=$PWD/.go-cache/go-build
+    - export GOMODCACHE=$PWD/.go-cache/mod
+  cache:
+    key: go-cache
+    paths:
+      - .go-cache
+
+
+build:go:
+  extends: .build-go
+  stage: build
+  script:
+    - go build -v -o server ./cmd/server
+    - go build -v -o downloader ./cmd/downloader
+  artifacts:
+    paths:
+      - server
+      - downloader
+    expire_in: 3 days
+
+# Build docker images
+
+.build:docker image:
+  tags:
+    - docker-buildhost
+  stage: build
+  needs:
+    - job: build:go
+      artifacts: false
+  cache:
+    key: docker-build-cache
+    paths:
+      - buildx-cache/
+  before_script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+    - mkdir -p buildx-cache && mv buildx-cache buildx-cache-from || true
+
+build:prod docker image:
+  extends: .build:docker image
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - >
+      docker buildx build
+      --platform linux/amd64,linux/arm64
+      --cache-from=type=local,src=buildx-cache-from
+      --cache-to=type=local,dest=buildx-cache
+      -f Dockerfile
+      -t $CI_REGISTRY_IMAGE:latest
+      --push .
