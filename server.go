@@ -77,14 +77,17 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 	acceptHeader := r.Header.Get("Accept")
 
-	if format == "json" || strings.Contains(acceptHeader, "application/json") {
+	switch {
+	case format == "text" || strings.Contains(acceptHeader, "text/plain"):
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Write([]byte(info.IP.String()))
+	case format == "json" || strings.Contains(acceptHeader, "application/json"):
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(info)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := s.tmpl.Execute(w, info); err != nil {
-		log.Printf("Template execution error: %v", err)
+	default:
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if err := s.tmpl.Execute(w, info); err != nil {
+			log.Printf("Template execution error: %v", err)
+		}
 	}
 }

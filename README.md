@@ -74,7 +74,9 @@ export MAXMIND_LICENSE_KEY=your_key
 go run cmd/server/main.go
 ```
 
-Access the server at `http://localhost:8080`. Append `?format=json` or set the `Accept: application/json` header to receive JSON responses.
+Access the server at `http://localhost:8080`.
+- Append `?format=json` or set the `Accept: application/json` header to receive JSON responses.
+- Append `?format=text` or set the `Accept: text/plain` header to receive only the IP address as plain text.
 
 ## How it Works
 
