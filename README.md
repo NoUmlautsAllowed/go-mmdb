@@ -7,6 +7,7 @@
 - **Automated Downloads**: Periodically fetches and extracts the latest MaxMind databases using your license key.
 - **Zero-Downtime Updates**: Uses atomic renames and periodic reloads to update databases without interrupting active queries.
 - **Unified IP Lookups**: Combines data from City and ASN databases into a single, easy-to-use `IPInfo` struct.
+- **Prometheus Metrics**: Built-in instrumentation for monitoring HTTP requests, lookups, and database downloads.
 - **HTTP Server**: Built-in server providing both HTML and JSON interfaces for IP lookups.
 - **Thread-Safe**: Designed for concurrent use in high-traffic applications.
 
@@ -26,6 +27,18 @@ The following environment variables are used to configure the downloader and cli
 | `MAXMIND_LICENSE_KEY` | Your MaxMind License Key (Required for downloader) | -                |
 | `MAXMIND_BASE_PATH`   | Directory where `.mmdb` files are stored           | `.`              |
 | `BIND_ADDR`           | Address for the built-in HTTP server               | `localhost:8080` |
+| `METRICS_ADDR`        | Address for the Prometheus metrics server           | `:9090`          |
+
+## Metrics
+
+When running the server, Prometheus metrics are exposed at `http://<METRICS_ADDR>/metrics`.
+
+Available metrics:
+
+- `mmdb_http_requests_total`: Total number of HTTP requests (labels: `path`, `method`, `status`).
+- `mmdb_http_request_duration_seconds`: Duration of HTTP requests (labels: `path`, `method`).
+- `mmdb_lookup_total`: Total number of IP lookups (labels: `type`: `city`, `asn`).
+- `mmdb_download_total`: Total number of database downloads (labels: `database`, `status`: `success`, `failure`, `skipped`).
 
 ## Usage
 

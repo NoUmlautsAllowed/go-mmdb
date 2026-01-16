@@ -29,6 +29,7 @@ func (c *Client) IPInfo(ip net.IP) IPInfo {
 	info.IP = ip
 
 	if cityDB := c.CityDB(); cityDB != nil {
+		LookupTotal.WithLabelValues("city").Inc()
 		if rec, err := cityDB.City(ip); err == nil {
 			// is country code
 			info.CountryCode = rec.Country.IsoCode
@@ -41,6 +42,7 @@ func (c *Client) IPInfo(ip net.IP) IPInfo {
 	}
 
 	if asnDB := c.AsnDB(); asnDB != nil {
+		LookupTotal.WithLabelValues("asn").Inc()
 		if rec, err := asnDB.ASN(ip); err == nil {
 			info.ASN = rec.AutonomousSystemOrganization
 		}

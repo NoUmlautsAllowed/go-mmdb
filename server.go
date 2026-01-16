@@ -7,7 +7,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 //go:embed index.html
@@ -37,7 +39,19 @@ func (s *Server) Handler() http.Handler {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	path := r.URL.Path
+	method := r.Method
+
+	var status int = http.StatusOK
+	defer func() {
+		duration := time.Since(start).Seconds()
+		HttpRequestDuration.WithLabelValues(path, method).Observe(duration)
+		HttpRequestsTotal.WithLabelValues(path, method, strconv.Itoa(status)).Inc()
+	}()
+
 	if r.URL.Path != "/" {
+		status = http.StatusNotFound
 		http.NotFound(w, r)
 		return
 	}
@@ -47,6 +61,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if ipStr != "" {
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
+			status = http.StatusBadRequest
 			http.Error(w, "Invalid IP address", http.StatusBadRequest)
 			return
 		}

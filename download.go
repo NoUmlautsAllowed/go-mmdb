@@ -66,6 +66,11 @@ func (d *Downloader) DownloadDatabases(ctx context.Context, dbs ...string) error
 }
 
 func (d *Downloader) downloadOne(ctx context.Context, db string) error {
+	var status string = "success"
+	defer func() {
+		DownloadTotal.WithLabelValues(db, status).Inc()
+	}()
+
 	url := fmt.Sprintf(
 		"https://download.maxmind.com/geoip/databases/%s/download?suffix=tar.gz",
 		db,
@@ -74,11 +79,13 @@ func (d *Downloader) downloadOne(ctx context.Context, db string) error {
 	// 1) fetch remote build time
 	remoteTime, err := d.fetchRemoteTime(ctx, url)
 	if err != nil {
+		status = "failure"
 		return fmt.Errorf("fetch remote time: %w", err)
 	}
 
 	localFile := dbPath(d.BasePath, db)
 	if !needsDownload(localFile, remoteTime) {
+		status = "skipped"
 		info, _ := os.Stat(localFile)
 		log.Printf("mmdb [%s] up to date (%s)", db, info.ModTime().UTC())
 		return nil
@@ -86,6 +93,7 @@ func (d *Downloader) downloadOne(ctx context.Context, db string) error {
 
 	tmp := localFile + ".tmp"
 	if err := d.fetchAndExtract(ctx, url, tmp); err != nil {
+		status = "failure"
 		return fmt.Errorf("download+extract: %w", err)
 	}
 
@@ -101,6 +109,7 @@ func (d *Downloader) downloadOne(ctx context.Context, db string) error {
 
 	// atomically replace
 	if err := os.Rename(tmp, localFile); err != nil {
+		status = "failure"
 		os.Remove(tmp)
 		return fmt.Errorf("final rename: %w", err)
 	}

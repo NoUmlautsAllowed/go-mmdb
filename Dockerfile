@@ -28,6 +28,5 @@ WORKDIR /go-mmdb
 COPY --from=golangbuilder /go/bin/server .
 COPY --from=golangbuilder /go/bin/downloader .
 
-ENV GIN_MODE=release
 EXPOSE 8080
 CMD ["./server"]

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.w1lhelm.de/swilhelm/go-mmdb"
 )
 
@@ -60,6 +61,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize server: %v", err)
 	}
+
+	// Metrics server
+	metricsAddr := os.Getenv("METRICS_ADDR")
+	if metricsAddr == "" {
+		metricsAddr = ":9090"
+	}
+	go func() {
+		log.Printf("Starting metrics server on %s", metricsAddr)
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		if err := http.ListenAndServe(metricsAddr, mux); err != nil {
+			log.Printf("Metrics server failed: %v", err)
+		}
+	}()
 
 	addr := os.Getenv("BIND_ADDR")
 	if addr == "" {

@@ -7,7 +7,8 @@
 - `client.go`: Contains the `Client` struct which manages multiple GeoIP2 database readers and handles periodic reloading of database files from disk.
 - `download.go`: Implements the `Downloader` which handles fetching and extracting MaxMind databases.
 - `ip_info.go`: Provides the `IPInfo` struct and methods to lookup IP information from `net.IP` or `http.Request`.
-- `go.mod`: Project dependencies, notably `github.com/oschwald/geoip2-golang`.
+- `metrics.go`: Defines Prometheus metrics for monitoring HTTP requests, lookups, and downloads.
+- `go.mod`: Project dependencies, notably `github.com/oschwald/geoip2-golang` and `github.com/prometheus/client_golang`.
 
 ## Core Components
 ### Client
@@ -26,9 +27,12 @@ The `Downloader` and `Client` are designed to run concurrently. When updating a 
 ### IPInfo
 The `IPInfo` functionality (in `ip_info.go`) simplifies looking up details about an IP address, combining data from City and ASN databases into a single struct.
 
+### Metrics
+The project uses Prometheus for monitoring. Metrics are defined in `metrics.go` and the server (in `cmd/server/main.go`) exposes them on a configurable port (defaulting to `:9090`).
+
 ## Development Guidelines
 - **Go Version**: The project uses Go 1.24.4 or higher.
-- **Dependencies**: Managed via Go modules. Major dependency is `github.com/oschwald/geoip2-golang`.
+- **Dependencies**: Managed via Go modules. Major dependencies include `github.com/oschwald/geoip2-golang` and `github.com/prometheus/client_golang`.
 - **Concurrency**: The `Client` is thread-safe, using `sync.RWMutex` to manage access to database readers during reloads.
 
 ## Testing
