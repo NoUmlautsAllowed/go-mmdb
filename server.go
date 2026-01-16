@@ -21,7 +21,11 @@ type Server struct {
 }
 
 func NewServer(client *Client) (*Server, error) {
-	tmpl, err := template.ParseFS(indexHTML, "index.html")
+	tmpl, err := template.New("index.html").Funcs(template.FuncMap{
+		"formatEpoch": func(epoch uint) string {
+			return time.Unix(int64(epoch), 0).Format("2006-01-02 15:04:05 UTC")
+		},
+	}).ParseFS(indexHTML, "index.html")
 	if err != nil {
 		return nil, err
 	}

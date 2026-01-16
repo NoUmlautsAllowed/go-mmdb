@@ -7,10 +7,12 @@ import (
 )
 
 type IPInfo struct {
-	IP          net.IP `json:"ip"`
-	CountryCode string `json:"country_code"`
-	ASN         string `json:"asn"`
-	City        string `json:"city"`
+	IP            net.IP `json:"ip"`
+	CountryCode   string `json:"country_code"`
+	ASN           string `json:"asn"`
+	City          string `json:"city"`
+	CityBuildDate uint   `json:"city_build_date"`
+	ASNBuildDate  uint   `json:"asn_build_date"`
 }
 
 func (c *Client) IPInfoFromRequest(r *http.Request) IPInfo {
@@ -30,6 +32,7 @@ func (c *Client) IPInfo(ip net.IP) IPInfo {
 
 	if cityDB := c.CityDB(); cityDB != nil {
 		LookupTotal.WithLabelValues("city").Inc()
+		info.CityBuildDate = cityDB.Metadata().BuildEpoch
 		if rec, err := cityDB.City(ip); err == nil {
 			// is country code
 			info.CountryCode = rec.Country.IsoCode
@@ -43,6 +46,7 @@ func (c *Client) IPInfo(ip net.IP) IPInfo {
 
 	if asnDB := c.AsnDB(); asnDB != nil {
 		LookupTotal.WithLabelValues("asn").Inc()
+		info.ASNBuildDate = asnDB.Metadata().BuildEpoch
 		if rec, err := asnDB.ASN(ip); err == nil {
 			info.ASN = rec.AutonomousSystemOrganization
 		}

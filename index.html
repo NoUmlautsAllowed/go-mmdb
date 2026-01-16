@@ -69,7 +69,9 @@
         </div>
     </div>
     <div class="footer">
-        Powered by go-mmdb
+        Powered by go-mmdb<br>
+        {{if .CityBuildDate}}City DB Build Date: {{formatEpoch .CityBuildDate}}{{end}}
+        {{if .ASNBuildDate}}<br>ASN DB Build Date: {{formatEpoch .ASNBuildDate}}{{end}}
     </div>
 </body>
 </html>

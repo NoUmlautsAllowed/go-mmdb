@@ -44,3 +44,9 @@ The project uses Prometheus for monitoring. Metrics are defined in `metrics.go` 
 - Follow standard Go formatting (`gofmt`).
 - Use descriptive variable names and maintain the existing naming conventions (e.g., camelCase for internal use, PascalCase for exported symbols).
 - Comments should be used where necessary to explain complex logic, following the existing style in the codebase.
+
+## Task Completion Checklist
+Always check after completing the task, if the following files need to be updated:
+- AGENTS.md
+- README.md
+- .example.env
