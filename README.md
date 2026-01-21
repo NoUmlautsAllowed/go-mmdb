@@ -61,7 +61,7 @@ defer client.Close()
 ip := net.ParseIP("8.8.8.8")
 info := client.IPInfo(ip)
 
-fmt.Printf("City: %s, Country: %s, ASN: %s\n", info.City, info.CountryCode, info.ASN)
+fmt.Printf("City: %s, Country: %s, ASN: %s, Network: %s, IPType: %d\n", info.City, info.CountryCode, info.ASN, info.Network, info.IPType)
 ```
 
 ### Running the Server
@@ -87,7 +87,7 @@ The `Downloader` and `Client` work together to ensure your application always ha
 1.  **Downloader**: Downloads new `.mmdb` files to a `.tmp` location.
 2.  **Backup**: Moves the current database to a `.old` file.
 3.  **Atomic Swap**: Renames the `.tmp` file to the target filename. Since the inode of the open file is preserved, the `Client` continues to work with the old data.
-4.  **Reload**: The `Client` periodically (every 2 hours) checks for updated files on disk. When it detects a change, it opens the new file, swaps the internal reader, and closes the old one.
+4.  **Reload**: The `Client` periodically (every 2 hours) checks for updated files on disk. When it detects a change, it opens the new file using `maxminddb.Reader`, swaps the internal reader, and closes the old one.
 
 ## License
 

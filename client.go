@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oschwald/geoip2-golang"
+	"github.com/oschwald/maxminddb-golang"
 )
 
 const (
@@ -28,13 +28,13 @@ type Client struct {
 	DataDirectory string
 
 	muCountry sync.RWMutex
-	country   *geoip2.Reader
+	country   *maxminddb.Reader
 
 	muCity sync.RWMutex
-	city   *geoip2.Reader
+	city   *maxminddb.Reader
 
 	muASN sync.RWMutex
-	asn   *geoip2.Reader
+	asn   *maxminddb.Reader
 
 	ticker *time.Ticker
 	done   chan struct{}
@@ -51,23 +51,23 @@ func NewClient() (*Client, error) {
 
 	var (
 		err     error
-		country *geoip2.Reader
-		city    *geoip2.Reader
-		asn     *geoip2.Reader
+		country *maxminddb.Reader
+		city    *maxminddb.Reader
+		asn     *maxminddb.Reader
 	)
 
-	country, err = geoip2.Open(dbPath(dataDirectory, CountryDatabase))
+	country, err = maxminddb.Open(dbPath(dataDirectory, CountryDatabase))
 	if err != nil {
 		return nil, err
 	}
 
-	city, err = geoip2.Open(dbPath(dataDirectory, CityDatabase))
+	city, err = maxminddb.Open(dbPath(dataDirectory, CityDatabase))
 	if err != nil {
 		_ = country.Close()
 		return nil, err
 	}
 
-	asn, err = geoip2.Open(dbPath(dataDirectory, ASNDatabase))
+	asn, err = maxminddb.Open(dbPath(dataDirectory, ASNDatabase))
 	if err != nil {
 		_ = country.Close()
 		_ = city.Close()
@@ -116,40 +116,40 @@ func (c *Client) reloadAll() {
 }
 
 // reloadDB opens the filename, swaps it in under mu, closes the old reader.
-func (c *Client) reloadDB(mu *sync.RWMutex, ptr **geoip2.Reader, filename string) {
+func (c *Client) reloadDB(mu *sync.RWMutex, ptr **maxminddb.Reader, filename string) {
 	newPath := dbPath(c.DataDirectory, filename)
-	newDB, err := geoip2.Open(newPath)
+	newMM, err := maxminddb.Open(newPath)
 	if err != nil {
-		log.Printf("Failed to open %s: %v", filename, err)
+		log.Printf("Failed to open %s (maxminddb): %v", filename, err)
 		return
 	}
 
 	mu.Lock()
 	old := *ptr
-	*ptr = newDB
+	*ptr = newMM
 	mu.Unlock()
 
 	if err := old.Close(); err != nil {
-		log.Printf("Failed to close old %s: %v", filename, err)
+		log.Printf("Failed to close old %s (maxminddb): %v", filename, err)
 	}
 }
 
 // CityDB returns the current city database reader.
-func (c *Client) CityDB() *geoip2.Reader {
+func (c *Client) CityDB() *maxminddb.Reader {
 	c.muCity.RLock()
 	defer c.muCity.RUnlock()
 	return c.city
 }
 
 // CountryDB returns the current country database reader.
-func (c *Client) CountryDB() *geoip2.Reader {
+func (c *Client) CountryDB() *maxminddb.Reader {
 	c.muCountry.RLock()
 	defer c.muCountry.RUnlock()
 	return c.country
 }
 
 // AsnDB returns the current ASN database reader.
-func (c *Client) AsnDB() *geoip2.Reader {
+func (c *Client) AsnDB() *maxminddb.Reader {
 	c.muASN.RLock()
 	defer c.muASN.RUnlock()
 	return c.asn

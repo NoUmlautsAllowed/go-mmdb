@@ -112,6 +112,14 @@
             <span class="value">{{.IP}}</span>
         </div>
         <div class="info-group">
+            <span class="label">IP Type</span>
+            <span class="value">IPv{{.IPType}}</span>
+        </div>
+        <div class="info-group">
+            <span class="label">Network</span>
+            <span class="value">{{if .Network}}{{.Network}}{{else}}Unknown{{end}}</span>
+        </div>
+        <div class="info-group">
             <span class="label">Country Code</span>
             <span class="value">{{if .CountryCode}}{{.CountryCode}}{{else}}Unknown{{end}}</span>
         </div>

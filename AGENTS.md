@@ -4,15 +4,15 @@
 `go-mmdb` is a Go library designed to facilitate working with MaxMind GeoIP2 databases (MMDB). It provides a high-level client for querying City, Country, and ASN databases, an automated downloader to keep these databases up-to-date, and utilities for extracting IP information from HTTP requests.
 
 ## Project Structure
-- `client.go`: Contains the `Client` struct which manages multiple GeoIP2 database readers and handles periodic reloading of database files from disk.
+- `client.go`: Contains the `Client` struct which manages multiple MaxMind database readers and handles periodic reloading of database files from disk.
 - `download.go`: Implements the `Downloader` which handles fetching and extracting MaxMind databases.
 - `ip_info.go`: Provides the `IPInfo` struct and methods to lookup IP information from `net.IP` or `http.Request`.
 - `metrics.go`: Defines Prometheus metrics for monitoring HTTP requests, lookups, and downloads.
-- `go.mod`: Project dependencies, notably `github.com/oschwald/geoip2-golang` and `github.com/prometheus/client_golang`.
+- `go.mod`: Project dependencies, notably `github.com/oschwald/maxminddb-golang` and `github.com/prometheus/client_golang`.
 
 ## Core Components
 ### Client
-The `Client` (in `client.go`) is the main entry point. It opens City, Country, and ASN databases and starts a background goroutine to periodically reload them (defaulting to every 2 hours).
+The `Client` (in `client.go`) is the main entry point. It opens City, Country, and ASN databases using `maxminddb.Reader` and starts a background goroutine to periodically reload them (defaulting to every 2 hours).
 
 ### Downloader
 The `Downloader` (in `download.go`) manages the downloading of `.mmdb` files. It checks if a local file needs updating based on the remote's last modified time.

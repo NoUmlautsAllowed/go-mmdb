@@ -4,10 +4,14 @@ import (
 	"net"
 	"net/http"
 	"strings"
+
+	"github.com/oschwald/geoip2-golang"
 )
 
 type IPInfo struct {
 	IP            net.IP `json:"ip"`
+	IPType        int    `json:"ip_type"`
+	Network       string `json:"network"`
 	CountryCode   string `json:"country_code"`
 	ASN           string `json:"asn"`
 	City          string `json:"city"`
@@ -29,11 +33,18 @@ func (c *Client) IPInfo(ip net.IP) IPInfo {
 	}
 
 	info.IP = ip
+	if ip.To4() != nil {
+		info.IPType = 4
+	} else {
+		info.IPType = 6
+	}
 
 	if cityDB := c.CityDB(); cityDB != nil {
 		LookupTotal.WithLabelValues("city").Inc()
-		info.CityBuildDate = cityDB.Metadata().BuildEpoch
-		if rec, err := cityDB.City(ip); err == nil {
+		info.CityBuildDate = uint(cityDB.Metadata.BuildEpoch)
+		var rec geoip2.City
+		if network, ok, err := cityDB.LookupNetwork(ip, &rec); err == nil && ok {
+			info.Network = network.String()
 			// is country code
 			info.CountryCode = rec.Country.IsoCode
 
@@ -46,9 +57,13 @@ func (c *Client) IPInfo(ip net.IP) IPInfo {
 
 	if asnDB := c.AsnDB(); asnDB != nil {
 		LookupTotal.WithLabelValues("asn").Inc()
-		info.ASNBuildDate = asnDB.Metadata().BuildEpoch
-		if rec, err := asnDB.ASN(ip); err == nil {
+		info.ASNBuildDate = uint(asnDB.Metadata.BuildEpoch)
+		var rec geoip2.ASN
+		if network, ok, err := asnDB.LookupNetwork(ip, &rec); err == nil && ok {
 			info.ASN = rec.AutonomousSystemOrganization
+			if info.Network == "" {
+				info.Network = network.String()
+			}
 		}
 	}
 
