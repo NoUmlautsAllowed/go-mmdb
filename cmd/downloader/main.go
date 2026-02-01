@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
+	"github.com/NoUmlautsAllowed/go-mmdb"
 	"github.com/joho/godotenv"
-	"gitlab.w1lhelm.de/swilhelm/go-mmdb"
 
 	"log"
 )

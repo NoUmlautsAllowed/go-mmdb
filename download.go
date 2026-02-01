@@ -25,11 +25,29 @@ type Downloader struct {
 	AccountID  string
 	LicenseKey string
 	BasePath   string
-	Client     *http.Client
+	client     *http.Client
+	url        string
+}
+
+type Option func(*Downloader)
+
+// WithURL sets the URL to download from.
+// url must include one placeholder for the Database e.g., CityDatabase
+func WithURL(url string) Option {
+	return func(d *Downloader) {
+		d.url = url
+	}
+}
+
+// WithClient sets the HTTP client to use.
+func WithClient(client *http.Client) Option {
+	return func(d *Downloader) {
+		d.client = client
+	}
 }
 
 // NewDownloader reads env vars and returns a configured Downloader.
-func NewDownloader() (*Downloader, error) {
+func NewDownloader(opts ...Option) (*Downloader, error) {
 	account := os.Getenv(MaxmindAccountId)
 	license := os.Getenv(MaxmindLicenseKey)
 	base := os.Getenv(MaxmindBasePath)
@@ -41,14 +59,21 @@ func NewDownloader() (*Downloader, error) {
 			MaxmindAccountId, MaxmindLicenseKey)
 	}
 
-	return &Downloader{
+	d := &Downloader{
 		AccountID:  account,
 		LicenseKey: license,
 		BasePath:   base,
-		Client: &http.Client{
+		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-	}, nil
+		url: "https://download.maxmind.com/geoip/databases/%s/download?suffix=tar.gz",
+	}
+
+	for _, opt := range opts {
+		opt(d)
+	}
+
+	return d, nil
 }
 
 // DownloadDatabases downloads (or skips) each requested DB.
@@ -72,7 +97,7 @@ func (d *Downloader) downloadOne(ctx context.Context, db string) error {
 	}()
 
 	url := fmt.Sprintf(
-		"https://download.maxmind.com/geoip/databases/%s/download?suffix=tar.gz",
+		d.url,
 		db,
 	)
 
@@ -125,7 +150,7 @@ func (d *Downloader) fetchRemoteTime(ctx context.Context, url string) (time.Time
 	}
 	req.SetBasicAuth(d.AccountID, d.LicenseKey)
 
-	resp, err := d.Client.Do(req)
+	resp, err := d.client.Do(req)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -161,7 +186,7 @@ func (d *Downloader) fetchAndExtract(ctx context.Context, url, tmpFile string) e
 	}
 	req.SetBasicAuth(d.AccountID, d.LicenseKey)
 
-	resp, err := d.Client.Do(req)
+	resp, err := d.client.Do(req)
 	if err != nil {
 		return err
 	}

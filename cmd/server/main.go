@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/NoUmlautsAllowed/go-mmdb"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gitlab.w1lhelm.de/swilhelm/go-mmdb"
 )
 
 func main() {
