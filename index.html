@@ -90,6 +90,14 @@
             vertical-align: middle;
         }
 
+        .alert {
+            padding: 15px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
         @media (prefers-color-scheme: dark) {
             body {
                 background-color: #1a1a1a;
@@ -129,6 +137,11 @@
 <body>
     <div class="container">
         <h1>IP Information</h1>
+        {{if not .Authorized}}
+        <div class="alert">
+            <strong>Unauthorized!</strong> Please provide a valid authentication token.
+        </div>
+        {{else}}
         <div class="info-group">
             <span class="label">IP Address</span>
             <span class="value">{{.IP}}</span>
@@ -153,10 +166,14 @@
             <span class="label">ASN</span>
             <span class="value">{{if .ASN}}{{.ASN}}{{else}}Unknown{{end}}</span>
         </div>
+        {{end}}
         <div class="form-group">
             <form action="/" method="GET">
                 <div class="form-row">
-                    <input type="text" name="ip" placeholder="IP Address (e.g. 8.8.8.8)" value="{{.IP}}">
+                    <input type="text" name="auth" placeholder="Authentication Token" value="{{.AuthToken}}">
+                </div>
+                <div class="form-row">
+                    <input type="text" name="ip" placeholder="IP Address (e.g. 8.8.8.8)" value="{{with .IP}}{{.}}{{end}}">
                     <select name="format">
                         <option value="html">HTML</option>
                         <option value="json">JSON</option>

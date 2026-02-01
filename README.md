@@ -46,6 +46,7 @@ The application can be configured using environment variables or a `.env` file:
 | `MAXMIND_BASE_PATH`   | Directory where `.mmdb` files are stored           | `.`              |
 | `BIND_ADDR`           | Address for the built-in HTTP server               | `localhost:8080` |
 | `METRICS_ADDR`        | Address for the Prometheus metrics server          | `localhost:9090` |
+| `AUTHORIZATION`       | Optional Bearer token for authentication           | -                |
 
 ## 📊 Metrics
 

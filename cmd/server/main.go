@@ -57,7 +57,7 @@ func main() {
 	}
 	defer client.Close()
 
-	srv, err := mmdb.NewServer(client)
+	srv, err := mmdb.NewServer(client, os.Getenv("AUTHORIZATION"))
 	if err != nil {
 		log.Fatalf("Failed to initialize server: %v", err)
 	}
