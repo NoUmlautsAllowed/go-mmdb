@@ -39,13 +39,13 @@ go get github.com/noumlautsallowed/go-mmdb
 
 The application can be configured using environment variables or a `.env` file:
 
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `MAXMIND_ACCOUNT_ID` | Your MaxMind Account ID (Required for downloader) | - |
-| `MAXMIND_LICENSE_KEY` | Your MaxMind License Key (Required for downloader) | - |
-| `MAXMIND_BASE_PATH` | Directory where `.mmdb` files are stored | `.` |
-| `BIND_ADDR` | Address for the built-in HTTP server | `localhost:8080` |
-| `METRICS_ADDR` | Address for the Prometheus metrics server | `:9090` |
+| Variable              | Description                                        | Default          |
+|:----------------------|:---------------------------------------------------|:-----------------|
+| `MAXMIND_ACCOUNT_ID`  | Your MaxMind Account ID (Required for downloader)  | -                |
+| `MAXMIND_LICENSE_KEY` | Your MaxMind License Key (Required for downloader) | -                |
+| `MAXMIND_BASE_PATH`   | Directory where `.mmdb` files are stored           | `.`              |
+| `BIND_ADDR`           | Address for the built-in HTTP server               | `localhost:8080` |
+| `METRICS_ADDR`        | Address for the Prometheus metrics server          | `localhost:9090` |
 
 ## 📊 Metrics
 

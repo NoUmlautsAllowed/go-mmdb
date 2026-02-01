@@ -65,7 +65,7 @@ func main() {
 	// Metrics server
 	metricsAddr := os.Getenv("METRICS_ADDR")
 	if metricsAddr == "" {
-		metricsAddr = ":9090"
+		metricsAddr = "localhost:9090"
 	}
 	go func() {
 		log.Printf("Starting metrics server on %s", metricsAddr)
